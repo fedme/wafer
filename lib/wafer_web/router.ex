@@ -20,10 +20,12 @@ defmodule WaferWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", WaferWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", WaferWeb do
+    pipe_through :api
+
+    get "/whatsapp/webhook", WhatsAppWebhookController, :verify
+    post "/whatsapp/webhook", WhatsAppWebhookController, :notify
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:wafer, :dev_routes) do
