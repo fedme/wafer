@@ -26,7 +26,8 @@ if config_env() == :dev do
 end
 
 config :wafer, WaferWeb.WhatsAppWebhookController,
-  verification_token: System.fetch_env!("WHATSAPP_WEBHOOK_VERIFICATION_TOKEN")
+  verification_token: System.fetch_env!("WHATSAPP_WEBHOOK_VERIFICATION_TOKEN"),
+  meta_app_secret: System.fetch_env!("META_APP_SECRET")
 
 config :wafer, Wafer.WhatsApp,
   token: System.fetch_env!("SYSTEM_USER_TOKEN"),

@@ -27,13 +27,30 @@ defmodule WaferWeb.WhatsAppWebhookController do
   A notification can include new messages, message statuses, contacts, etc.
   """
   def notify(conn, params) do
-    # Handle the notification asynchronously
-    # In production, you may want to use a job queue like Oban
-    Task.start(fn -> process_notification(params) end)
+    if signature_valid?(conn) do
+      # Handle the notification asynchronously
+      # In production, you may want to use a job queue like Oban
+      Task.start(fn -> process_notification(params) end)
 
-    conn
-    |> put_status(201)
-    |> json(%{})
+      conn
+      |> put_status(201)
+      |> json(%{})
+    else
+      send_resp(conn, :unauthorized, "")
+    end
+  end
+
+  def signature_valid?(conn) do
+    payload = WaferWeb.Plugs.CachingBodyReader.get_raw_body(conn)
+
+    computed_signature =
+      :crypto.mac(:hmac, :sha256, meta_app_secret(), payload)
+      |> Base.encode16(case: :lower)
+
+    [signature_header] = get_req_header(conn, "x-hub-signature-256")
+    received_signature = String.replace_prefix(signature_header, "sha256=", "")
+
+    computed_signature == received_signature
   end
 
   def process_notification(params) do
@@ -61,5 +78,9 @@ defmodule WaferWeb.WhatsAppWebhookController do
 
   defp verification_token() do
     Application.get_env(:wafer, __MODULE__)[:verification_token]
+  end
+
+  defp meta_app_secret() do
+    Application.get_env(:wafer, __MODULE__)[:meta_app_secret]
   end
 end
