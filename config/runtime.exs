@@ -20,6 +20,18 @@ if System.get_env("PHX_SERVER") do
   config :wafer, WaferWeb.Endpoint, server: true
 end
 
+# Parse env vars from .env file in development
+if config_env() == :dev do
+  DotenvParser.load_file(".env")
+end
+
+config :wafer, WaferWeb.WhatsAppWebhookController,
+  verification_token: System.fetch_env!("WHATSAPP_WEBHOOK_VERIFICATION_TOKEN")
+
+config :wafer, Wafer.WhatsApp,
+  token: System.fetch_env!("SYSTEM_USER_TOKEN"),
+  business_number_id: System.fetch_env!("BUSINESS_NUMBER_ID")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
