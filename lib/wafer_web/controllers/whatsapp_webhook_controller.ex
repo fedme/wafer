@@ -73,7 +73,7 @@ defmodule WaferWeb.WhatsAppWebhookController do
     # contacts = Map.get(value, "contacts", [])
 
     messages
-    |> Enum.map(&IO.inspect/1)
+    |> Enum.map(&Wafer.ContactRouter.handle_inbound_message/1)
   end
 
   defp verification_token() do

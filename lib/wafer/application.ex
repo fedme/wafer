@@ -14,6 +14,8 @@ defmodule Wafer.Application do
       {Phoenix.PubSub, name: Wafer.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Wafer.Finch},
+      {Registry, keys: :unique, name: Wafer.ContactRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: Wafer.ContactSupervisor},
       # Start a worker by calling: Wafer.Worker.start_link(arg)
       # {Wafer.Worker, arg},
       # Start to serve requests, typically the last entry
