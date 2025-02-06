@@ -1,14 +1,19 @@
 defmodule Wafer.ContactProcess do
   use GenServer
   alias Wafer.IntentClassifier
+  alias Wafer.FlowContext
 
   defmodule State do
-    defstruct messages: [], current_flow_id: nil
+    defstruct current_flow_id: nil, flow_context: %FlowContext{}
   end
 
   # Public API
   def start_link(from) do
-    GenServer.start_link(__MODULE__, %State{}, name: via_tuple(from))
+    GenServer.start_link(
+      __MODULE__,
+      %State{flow_context: %FlowContext{contact_phone: from}},
+      name: via_tuple(from)
+    )
   end
 
   def handle_inbound_message(from, message) do
@@ -28,15 +33,20 @@ defmodule Wafer.ContactProcess do
         state.current_flow_id
       end
 
-    new_state = %State{
+    state = %State{
       state
-      | messages: [message | state.messages],
-        current_flow_id: current_flow_id
+      | current_flow_id: current_flow_id,
+        flow_context: %FlowContext{
+          state.flow_context
+          | messages: [message | state.flow_context.messages]
+        }
     }
 
-    IO.inspect(new_state, label: "New state")
+    state = run_current_flow(message, state)
 
-    {:reply, :ok, new_state}
+    IO.inspect(state, label: "New state")
+
+    {:reply, :ok, state}
   end
 
   # Internal functions
@@ -52,6 +62,31 @@ defmodule Wafer.ContactProcess do
   end
 
   def wants_to_exit_current_flow?(_message), do: false
+
+  def run_current_flow(message, state) do
+    result =
+      case state.current_flow_id do
+        nil ->
+          Wafer.Flows.Default.handle_inbound_message(message, state.flow_context)
+
+        _flow_id ->
+          # TODO: find flow and run it
+          {:no_reply, state.flow_context}
+      end
+
+    case result do
+      {:no_reply, flow_context} ->
+        %State{state | flow_context: flow_context}
+
+      {:reply, reply, flow_context} ->
+        IO.inspect(reply, label: "Reply")
+        %State{state | flow_context: flow_context}
+
+      {:error, reason} ->
+        IO.inspect(reason, label: "Error")
+        state
+    end
+  end
 
   defp via_tuple(from) do
     {:via, Registry, {Wafer.ContactRegistry, from}}
