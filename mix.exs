@@ -58,7 +58,9 @@ defmodule Wafer.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:dotenv_parser, "~> 2.0", only: :dev}
+      {:dotenv_parser, "~> 2.0", only: :dev},
+      {:bumblebee, "~> 0.6.0"},
+      {:exla, ">= 0.0.0"}
     ]
   end
 
