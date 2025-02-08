@@ -60,7 +60,8 @@ defmodule Wafer.MixProject do
       {:bandit, "~> 1.5"},
       {:dotenv_parser, "~> 2.0", only: :dev},
       {:bumblebee, "~> 0.6.0"},
-      {:exla, ">= 0.0.0"}
+      {:exla, ">= 0.0.0"},
+      {:req, "~> 0.5.0"}
     ]
   end
 

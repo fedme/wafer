@@ -27,7 +27,7 @@ defmodule Wafer.ContactProcess do
 
   def handle_call({:handle_inbound_message, message}, _from, state) do
     current_flow_id =
-      if wants_to_exit_current_flow?(message) do
+      if is_nil(state.current_flow_id) || wants_to_exit_current_flow?(message) do
         nil
       else
         state.current_flow_id
@@ -80,6 +80,10 @@ defmodule Wafer.ContactProcess do
 
       {:reply, reply, flow_context} ->
         IO.inspect(reply, label: "Reply")
+        %State{state | flow_context: flow_context}
+
+      {:start_flow, flow_id, flow_context} ->
+        IO.inspect(flow_id, label: "Start flow")
         %State{state | flow_context: flow_context}
 
       {:error, reason} ->

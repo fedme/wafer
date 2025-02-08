@@ -16,5 +16,6 @@ defmodule Wafer.Flow do
   @callback handle_inbound_message(message(), FlowContext.t()) ::
               {:no_reply, FlowContext.t()}
               | {:reply, message(), FlowContext.t()}
+              | {:start_flow, String.t(), FlowContext.t()}
               | {:error, String.t()}
 end
