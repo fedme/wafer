@@ -39,7 +39,14 @@ defmodule Wafer.Flows.Default do
             # TODO: add full chat history
             %{"role" => "user", "content" => message["text"]["body"]}
           ],
-          tools: Enum.map(Wafer.Flows.list_flows(), &%{"type" => "function", "function" => &1})
+          tools:
+            Enum.map(
+              Wafer.Flows.list_flows(),
+              &%{
+                "type" => "function",
+                "function" => Map.take(&1, [:name, :description, :parameters])
+              }
+            )
         }
       )
 

@@ -2,6 +2,9 @@ defmodule Wafer.ContactProcess do
   use GenServer
   alias Wafer.IntentClassifier
   alias Wafer.FlowContext
+  alias Wafer.Flows
+
+  require Logger
 
   defmodule State do
     defstruct current_flow_id: nil, flow_context: %FlowContext{}
@@ -69,9 +72,8 @@ defmodule Wafer.ContactProcess do
         nil ->
           Wafer.Flows.Default.handle_inbound_message(message, state.flow_context)
 
-        _flow_id ->
-          # TODO: find flow and run it
-          {:no_reply, state.flow_context}
+        flow_id ->
+          run_flow(flow_id, message, state)
       end
 
     case result do
@@ -79,17 +81,34 @@ defmodule Wafer.ContactProcess do
         %State{state | flow_context: flow_context}
 
       {:reply, reply, flow_context} ->
-        IO.inspect(reply, label: "Reply")
         Wafer.WhatsApp.send_message(reply)
         %State{state | flow_context: flow_context}
 
       {:start_flow, flow_id, flow_context} ->
-        IO.inspect(flow_id, label: "Start flow")
-        %State{state | flow_context: flow_context}
+        if Flows.flow_exists?(flow_id) do
+          run_current_flow(message, %State{
+            state
+            | current_flow_id: flow_id,
+              flow_context: flow_context
+          })
+        else
+          Logger.error("Flow #{flow_id} not found")
+          %State{state | flow_context: flow_context}
+        end
 
       {:error, reason} ->
-        IO.inspect(reason, label: "Error")
+        Logger.error("Error: #{inspect(reason)}")
         state
+    end
+  end
+
+  def run_flow(flow_id, message, state) do
+    flow_module = Flows.get_flow_module(flow_id)
+
+    if Code.ensure_loaded?(flow_module) do
+      flow_module.handle_inbound_message(message, state.flow_context)
+    else
+      Logger.error("Flow module #{flow_module} not found")
     end
   end
 
