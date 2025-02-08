@@ -80,6 +80,7 @@ defmodule Wafer.ContactProcess do
 
       {:reply, reply, flow_context} ->
         IO.inspect(reply, label: "Reply")
+        Wafer.WhatsApp.send_message(reply)
         %State{state | flow_context: flow_context}
 
       {:start_flow, flow_id, flow_context} ->
