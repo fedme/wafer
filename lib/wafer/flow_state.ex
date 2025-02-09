@@ -10,4 +10,10 @@ defmodule Wafer.FlowState do
   def assign(%__MODULE__{} = state, key, value) do
     %__MODULE__{state | assigns: Map.put(state.assigns, key, value)}
   end
+
+  def append_message(%__MODULE__{} = state, message, max_messages \\ 20) do
+    messages = state.messages ++ [message]
+    messages = Enum.take(messages, -max_messages)
+    %__MODULE__{state | messages: messages}
+  end
 end
