@@ -13,6 +13,8 @@ defmodule Wafer.Flows.BookDesk do
     {:ok, assign(state, :step, "date_selection")}
   end
 
+  # Select date
+
   @impl Wafer.Flow
   def handle_inbound_message(_message, %FlowState{assigns: %{step: "date_selection"}} = state) do
     reply =
@@ -28,6 +30,8 @@ defmodule Wafer.Flows.BookDesk do
 
     {:reply, reply, assign(state, :step, "time_selection")}
   end
+
+  # Select time
 
   def handle_inbound_message(message, %FlowState{assigns: %{step: "time_selection"}} = state) do
     {answer, _} = WhatsApp.parse_answer(message)
@@ -51,6 +55,8 @@ defmodule Wafer.Flows.BookDesk do
     {:reply, reply, state}
   end
 
+  # Select floor
+
   def handle_inbound_message(message, %FlowState{assigns: %{step: "floor_selection"}} = state) do
     {answer, _} = WhatsApp.parse_answer(message)
 
@@ -71,6 +77,8 @@ defmodule Wafer.Flows.BookDesk do
 
     {:reply, reply, state}
   end
+
+  # Select desk
 
   def handle_inbound_message(message, %FlowState{assigns: %{step: "desk_selection"}} = state) do
     {answer, _} = WhatsApp.parse_answer(message)
@@ -99,6 +107,8 @@ defmodule Wafer.Flows.BookDesk do
 
     {:reply, reply, state}
   end
+
+  # Show confirmation
 
   def handle_inbound_message(message, %FlowState{assigns: %{step: "confirmation"}} = state) do
     {answer, _} = WhatsApp.parse_answer(message)
