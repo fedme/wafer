@@ -24,7 +24,7 @@ defmodule Wafer.Flows.Default do
 
   When you recognize an intent (the user wants to perform one of the operations listed above) DO NOT ask for any additional information and immediately call the corresponding tool/function that you were provided.
 
-  Please reply in the language that the user is using.
+  Your language is English.
   Reply with short messages since your output will be sent over WhatsApp.
   """
 
