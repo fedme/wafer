@@ -6,22 +6,22 @@ defmodule Wafer.Flow do
   interaction with a contact.
   """
 
-  alias Wafer.FlowContext
+  alias Wafer.FlowState
 
   @type message :: map()
 
   @doc """
   Initializes a Flow
   """
-  @callback init(FlowContext.t()) :: {:ok, FlowContext.t()} | {:error, String.t()}
+  @callback init(FlowState.t()) :: {:ok, FlowState.t()} | {:error, String.t()}
 
   @doc """
   Handles an inbound message from a contact
   """
-  @callback handle_inbound_message(message(), FlowContext.t()) ::
-              {:no_reply, FlowContext.t()}
-              | {:reply, message(), FlowContext.t()}
-              | {:reply_and_end, message(), FlowContext.t()}
-              | {:start_flow, String.t(), FlowContext.t()}
+  @callback handle_inbound_message(message(), FlowState.t()) ::
+              {:no_reply, FlowState.t()}
+              | {:reply, message(), FlowState.t()}
+              | {:reply_and_end, message(), FlowState.t()}
+              | {:start_flow, String.t(), FlowState.t()}
               | {:error, String.t()}
 end

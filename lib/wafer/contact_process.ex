@@ -1,20 +1,20 @@
 defmodule Wafer.ContactProcess do
   use GenServer
   alias Wafer.IntentClassifier
-  alias Wafer.FlowContext
+  alias Wafer.FlowState
   alias Wafer.Flows
 
   require Logger
 
   defmodule State do
-    defstruct current_flow_id: nil, flow_context: %FlowContext{}
+    defstruct current_flow_id: nil, flow_state: %FlowState{}
   end
 
   # Public API
   def start_link(from) do
     GenServer.start_link(
       __MODULE__,
-      %State{flow_context: %FlowContext{contact_phone: from}},
+      %State{flow_state: %FlowState{contact_phone: from}},
       name: via_tuple(from)
     )
   end
@@ -39,9 +39,9 @@ defmodule Wafer.ContactProcess do
     state = %State{
       state
       | current_flow_id: current_flow_id,
-        flow_context: %FlowContext{
-          state.flow_context
-          | messages: [message | state.flow_context.messages]
+        flow_state: %FlowState{
+          state.flow_state
+          | messages: [message | state.flow_state.messages]
         }
     }
 
@@ -70,35 +70,35 @@ defmodule Wafer.ContactProcess do
     result =
       case state.current_flow_id do
         nil ->
-          Wafer.Flows.Default.handle_inbound_message(message, state.flow_context)
+          Wafer.Flows.Default.handle_inbound_message(message, state.flow_state)
 
         flow_id ->
           run_flow(flow_id, message, state)
       end
 
     case result do
-      {:no_reply, flow_context} ->
-        %State{state | flow_context: flow_context}
+      {:no_reply, flow_state} ->
+        %State{state | flow_state: flow_state}
 
-      {:reply, reply, flow_context} ->
+      {:reply, reply, flow_state} ->
         Wafer.WhatsApp.send_message(reply)
-        # TODO: Add message to the flow context
-        %State{state | flow_context: flow_context}
+        # TODO: Add message to the flow state
+        %State{state | flow_state: flow_state}
 
-      {:reply_and_end, reply, flow_context} ->
+      {:reply_and_end, reply, flow_state} ->
         Wafer.WhatsApp.send_message(reply)
-        # TODO: Add message to the flow context
-        %State{state | current_flow_id: nil, flow_context: flow_context}
+        # TODO: Add message to the flow state
+        %State{state | current_flow_id: nil, flow_state: flow_state}
 
-      {:start_flow, flow_id, flow_context} ->
+      {:start_flow, flow_id, flow_state} ->
         if Flows.flow_exists?(flow_id) do
-          state = %State{state | current_flow_id: flow_id, flow_context: flow_context}
-          {:ok, flow_context} = init_flow(flow_id, state)
-          state = %State{state | flow_context: flow_context}
+          state = %State{state | current_flow_id: flow_id, flow_state: flow_state}
+          {:ok, flow_state} = init_flow(flow_id, state)
+          state = %State{state | flow_state: flow_state}
           run_current_flow(message, state)
         else
           Logger.error("Flow #{flow_id} not found")
-          %State{state | flow_context: flow_context}
+          %State{state | flow_state: flow_state}
         end
 
       {:error, reason} ->
@@ -111,7 +111,7 @@ defmodule Wafer.ContactProcess do
     flow_module = Flows.get_flow_module(flow_id)
 
     if Code.ensure_loaded?(flow_module) do
-      flow_module.init(state.flow_context)
+      flow_module.init(state.flow_state)
     else
       Logger.error("Flow module #{flow_module} not found")
     end
@@ -121,7 +121,7 @@ defmodule Wafer.ContactProcess do
     flow_module = Flows.get_flow_module(flow_id)
 
     if Code.ensure_loaded?(flow_module) do
-      flow_module.handle_inbound_message(message, state.flow_context)
+      flow_module.handle_inbound_message(message, state.flow_state)
     else
       Logger.error("Flow module #{flow_module} not found")
     end

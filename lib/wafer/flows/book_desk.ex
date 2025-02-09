@@ -4,32 +4,32 @@ defmodule Wafer.Flows.BookDesk do
   """
   @behaviour Wafer.Flow
 
-  alias Wafer.FlowContext
-  import Wafer.FlowContext, only: [assign: 3]
+  alias Wafer.FlowState
+  import Wafer.FlowState, only: [assign: 3]
 
   @impl Wafer.Flow
-  def init(context) do
-    {:ok, assign(context, :step, 0)}
+  def init(state) do
+    {:ok, assign(state, :step, 0)}
   end
 
   @impl Wafer.Flow
-  def handle_inbound_message(_message, %FlowContext{assigns: %{step: 0}} = context) do
+  def handle_inbound_message(_message, %FlowState{assigns: %{step: 0}} = state) do
     reply = %{
-      "to" => context.contact_phone,
+      "to" => state.contact_phone,
       "type" => "text",
       "text" => %{"body" => "Nice, let's book a desk!"}
     }
 
-    {:reply, reply, assign(context, :step, 1)}
+    {:reply, reply, assign(state, :step, 1)}
   end
 
-  def handle_inbound_message(_message, %FlowContext{assigns: %{step: 1}} = context) do
+  def handle_inbound_message(_message, %FlowState{assigns: %{step: 1}} = state) do
     reply = %{
-      "to" => context.contact_phone,
+      "to" => state.contact_phone,
       "type" => "text",
       "text" => %{"body" => "Desk booked!"}
     }
 
-    {:reply_and_end, reply, context}
+    {:reply_and_end, reply, state}
   end
 end

@@ -1,4 +1,4 @@
-defmodule Wafer.FlowContext do
+defmodule Wafer.FlowState do
   @type t :: %__MODULE__{
           messages: [String.t()],
           contact_phone: String.t() | nil,
@@ -7,7 +7,7 @@ defmodule Wafer.FlowContext do
 
   defstruct messages: [], contact_phone: nil, assigns: %{}
 
-  def assign(%__MODULE__{} = context, key, value) do
-    %__MODULE__{context | assigns: Map.put(context.assigns, key, value)}
+  def assign(%__MODULE__{} = state, key, value) do
+    %__MODULE__{state | assigns: Map.put(state.assigns, key, value)}
   end
 end

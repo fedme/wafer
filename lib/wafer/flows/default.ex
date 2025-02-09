@@ -25,12 +25,12 @@ defmodule Wafer.Flows.Default do
   """
 
   @impl Wafer.Flow
-  def init(context) do
-    {:ok, context}
+  def init(state) do
+    {:ok, state}
   end
 
   @impl Wafer.Flow
-  def handle_inbound_message(message, context) do
+  def handle_inbound_message(message, state) do
     openai_response =
       Req.post!("https://api.openai.com/v1/chat/completions",
         receive_timeout: 20_000,
@@ -67,16 +67,16 @@ defmodule Wafer.Flows.Default do
           | _
         ]
       } ->
-        {:start_flow, function_name, context}
+        {:start_flow, function_name, state}
 
       %{"choices" => [%{"message" => %{"content" => reply}} | _]} ->
         reply = %{
-          "to" => context.contact_phone,
+          "to" => state.contact_phone,
           "type" => "text",
           "text" => %{"body" => reply}
         }
 
-        {:reply, reply, context}
+        {:reply, reply, state}
     end
   end
 end
