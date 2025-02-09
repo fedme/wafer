@@ -41,7 +41,7 @@ defmodule Wafer.ContactProcess do
       | current_flow_id: current_flow_id,
         flow_state: %FlowState{
           state.flow_state
-          | messages: [message | state.flow_state.messages]
+          | messages: state.flow_state.messages ++ [message]
         }
     }
 
@@ -82,13 +82,20 @@ defmodule Wafer.ContactProcess do
 
       {:reply, reply, flow_state} ->
         Wafer.WhatsApp.send_message(reply)
-        # TODO: Add message to the flow state
-        %State{state | flow_state: flow_state}
+
+        %State{
+          state
+          | flow_state: %FlowState{flow_state | messages: flow_state.messages ++ [reply]}
+        }
 
       {:reply_and_end, reply, flow_state} ->
         Wafer.WhatsApp.send_message(reply)
-        # TODO: Add message to the flow state
-        %State{state | current_flow_id: nil, flow_state: flow_state}
+
+        %State{
+          state
+          | current_flow_id: nil,
+            flow_state: %FlowState{flow_state | messages: flow_state.messages ++ [reply]}
+        }
 
       {:start_flow, flow_id, flow_state} ->
         if Flows.flow_exists?(flow_id) do

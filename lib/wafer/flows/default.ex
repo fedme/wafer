@@ -3,6 +3,8 @@ defmodule Wafer.Flows.Default do
   Default flow, which is a simple AI Assistant that can handle basic inquiries.
   If the assistant recognizes an intent for which we have a predefined flow, it will start that flow.
   """
+  alias Wafer.OpenAi
+
   @behaviour Wafer.Flow
 
   @system_prompt """
@@ -30,30 +32,20 @@ defmodule Wafer.Flows.Default do
   end
 
   @impl Wafer.Flow
-  def handle_inbound_message(message, state) do
+  def handle_inbound_message(_message, state) do
     openai_response =
-      Req.post!("https://api.openai.com/v1/chat/completions",
-        receive_timeout: 20_000,
-        headers: [
-          {"Authorization", "Bearer #{System.get_env("OPENAI_API_KEY")}"},
-          {"Content-Type", "application/json"}
+      OpenAi.chat_completion(
+        [
+          %{"role" => "developer", "content" => @system_prompt}
+          | OpenAi.whatsapp_messages_to_openai_messages(state.messages)
         ],
-        json: %{
-          model: "gpt-4o-mini",
-          messages: [
-            %{"role" => "developer", "content" => @system_prompt},
-            # TODO: add full chat history
-            %{"role" => "user", "content" => message["text"]["body"]}
-          ],
-          tools:
-            Enum.map(
-              Wafer.Flows.list_flows(),
-              &%{
-                "type" => "function",
-                "function" => Map.take(&1, [:name, :description, :parameters])
-              }
-            )
-        }
+        Enum.map(
+          Wafer.Flows.list_flows(),
+          &%{
+            "type" => "function",
+            "function" => Map.take(&1, [:name, :description, :parameters])
+          }
+        )
       )
 
     case openai_response.body do
