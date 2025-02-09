@@ -22,6 +22,8 @@ defmodule Wafer.Flows.Default do
   - ordering lunch
   - sign up for an event
 
+  When you recognize an intent (the user wants to perform one of the operations listed above) DO NOT ask for any additional information and immediately call the corresponding tool/function that you were provided.
+
   Please reply in the language that the user is using.
   Reply with short messages since your output will be sent over WhatsApp.
   """
@@ -43,7 +45,7 @@ defmodule Wafer.Flows.Default do
           Wafer.Flows.list_flows(),
           &%{
             "type" => "function",
-            "function" => Map.take(&1, [:name, :description, :parameters])
+            "function" => Map.take(&1, [:name, :description, :strict, :parameters])
           }
         )
       )

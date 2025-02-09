@@ -1,15 +1,26 @@
 defmodule Wafer.Flows do
   @flows [
     %{
-      name: "book_desk",
-      description: "Book a desk at the coworking space",
-      parameters: %{},
+      name: "desk_booking_flow",
+      description:
+        "Call this to start a flow that allows the user to book a desk. No arguments needed, call this as soon as you recognize the intent",
+      strict: true,
+      parameters: %{
+        type: :object,
+        properties: %{},
+        additionalProperties: false
+      },
       module: Wafer.Flows.BookDesk
     },
     %{
       name: "book_meeting_room",
       description: "Book a meeting room at the coworking space",
-      parameters: %{},
+      strict: true,
+      parameters: %{
+        type: :object,
+        properties: %{},
+        additionalProperties: false
+      },
       module: Wafer.Flows.BookMeetingRoom
     }
   ]

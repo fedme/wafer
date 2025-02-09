@@ -17,6 +17,66 @@ defmodule Wafer.WhatsApp do
     )
   end
 
+  def text_message(to, body) do
+    %{
+      "to" => to,
+      "type" => "text",
+      "text" => %{"body" => body}
+    }
+  end
+
+  def buttons_message(to, body, buttons) do
+    %{
+      "to" => to,
+      "type" => "interactive",
+      "interactive" => %{
+        "type" => "button",
+        "body" => %{"text" => body},
+        "action" => %{
+          "buttons" =>
+            buttons
+            |> Enum.take(3)
+            |> Enum.map(fn {id, title} ->
+              %{
+                "type" => "reply",
+                "reply" => %{
+                  "id" => id,
+                  "title" => title
+                }
+              }
+            end)
+        }
+      }
+    }
+  end
+
+  def list_message(to, body, button_label, options) do
+    %{
+      "to" => to,
+      "type" => "interactive",
+      "interactive" => %{
+        "type" => "list",
+        "body" => %{"text" => body},
+        "action" => %{
+          "button" => button_label,
+          "sections" => [
+            %{
+              "title" => "",
+              "rows" =>
+                Enum.map(options, fn {id, title, description} ->
+                  %{
+                    "id" => id,
+                    "title" => title,
+                    "description" => description
+                  }
+                end)
+            }
+          ]
+        }
+      }
+    }
+  end
+
   defp token() do
     Application.get_env(:wafer, __MODULE__)[:token]
   end
