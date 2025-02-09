@@ -11,11 +11,17 @@ defmodule Wafer.Flow do
   @type message :: map()
 
   @doc """
+  Initializes a Flow
+  """
+  @callback init(FlowContext.t()) :: {:ok, FlowContext.t()} | {:error, String.t()}
+
+  @doc """
   Handles an inbound message from a contact
   """
   @callback handle_inbound_message(message(), FlowContext.t()) ::
               {:no_reply, FlowContext.t()}
               | {:reply, message(), FlowContext.t()}
+              | {:reply_and_end, message(), FlowContext.t()}
               | {:start_flow, String.t(), FlowContext.t()}
               | {:error, String.t()}
 end

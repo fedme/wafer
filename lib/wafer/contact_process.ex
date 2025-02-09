@@ -20,7 +20,7 @@ defmodule Wafer.ContactProcess do
   end
 
   def handle_inbound_message(from, message) do
-    GenServer.call(via_tuple(from), {:handle_inbound_message, message})
+    GenServer.call(via_tuple(from), {:handle_inbound_message, message}, 20_000)
   end
 
   # GenServer Callbacks
@@ -82,15 +82,20 @@ defmodule Wafer.ContactProcess do
 
       {:reply, reply, flow_context} ->
         Wafer.WhatsApp.send_message(reply)
+        # TODO: Add message to the flow context
         %State{state | flow_context: flow_context}
+
+      {:reply_and_end, reply, flow_context} ->
+        Wafer.WhatsApp.send_message(reply)
+        # TODO: Add message to the flow context
+        %State{state | current_flow_id: nil, flow_context: flow_context}
 
       {:start_flow, flow_id, flow_context} ->
         if Flows.flow_exists?(flow_id) do
-          run_current_flow(message, %State{
-            state
-            | current_flow_id: flow_id,
-              flow_context: flow_context
-          })
+          state = %State{state | current_flow_id: flow_id, flow_context: flow_context}
+          {:ok, flow_context} = init_flow(flow_id, state)
+          state = %State{state | flow_context: flow_context}
+          run_current_flow(message, state)
         else
           Logger.error("Flow #{flow_id} not found")
           %State{state | flow_context: flow_context}
@@ -99,6 +104,16 @@ defmodule Wafer.ContactProcess do
       {:error, reason} ->
         Logger.error("Error: #{inspect(reason)}")
         state
+    end
+  end
+
+  def init_flow(flow_id, state) do
+    flow_module = Flows.get_flow_module(flow_id)
+
+    if Code.ensure_loaded?(flow_module) do
+      flow_module.init(state.flow_context)
+    else
+      Logger.error("Flow module #{flow_module} not found")
     end
   end
 

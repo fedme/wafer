@@ -25,9 +25,15 @@ defmodule Wafer.Flows.Default do
   """
 
   @impl Wafer.Flow
+  def init(context) do
+    {:ok, context}
+  end
+
+  @impl Wafer.Flow
   def handle_inbound_message(message, context) do
     openai_response =
       Req.post!("https://api.openai.com/v1/chat/completions",
+        receive_timeout: 20_000,
         headers: [
           {"Authorization", "Bearer #{System.get_env("OPENAI_API_KEY")}"},
           {"Content-Type", "application/json"}
