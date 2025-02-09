@@ -77,6 +77,38 @@ defmodule Wafer.WhatsApp do
     }
   end
 
+  def parse_answer(%{
+        "from" => _from,
+        "type" => "text",
+        "text" => %{"body" => text}
+      }) do
+    {nil, text}
+  end
+
+  def parse_answer(%{
+        "from" => _from,
+        "type" => "button",
+        "button" => %{"id" => id, "text" => text}
+      }) do
+    {id, text}
+  end
+
+  def parse_answer(%{
+        "from" => _from,
+        "type" => "interactive",
+        "interactive" => %{"list_reply" => %{"id" => id, "title" => text}}
+      }) do
+    {id, text}
+  end
+
+  def parse_answer(%{
+        "from" => _from,
+        "type" => "interactive",
+        "interactive" => %{"button_reply" => %{"id" => id, "title" => text}}
+      }) do
+    {id, text}
+  end
+
   defp token() do
     Application.get_env(:wafer, __MODULE__)[:token]
   end

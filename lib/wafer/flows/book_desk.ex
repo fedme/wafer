@@ -29,7 +29,14 @@ defmodule Wafer.Flows.BookDesk do
     {:reply, reply, assign(state, :step, "time_selection")}
   end
 
-  def handle_inbound_message(_message, %FlowState{assigns: %{step: "time_selection"}} = state) do
+  def handle_inbound_message(message, %FlowState{assigns: %{step: "time_selection"}} = state) do
+    {answer, _} = WhatsApp.parse_answer(message)
+
+    state =
+      state
+      |> assign(:desk_date, answer)
+      |> assign(:step, "floor_selection")
+
     reply =
       WhatsApp.buttons_message(
         state.contact_phone,
@@ -41,10 +48,17 @@ defmodule Wafer.Flows.BookDesk do
         ]
       )
 
-    {:reply, reply, assign(state, :step, "floor_selection")}
+    {:reply, reply, state}
   end
 
-  def handle_inbound_message(_message, %FlowState{assigns: %{step: "floor_selection"}} = state) do
+  def handle_inbound_message(message, %FlowState{assigns: %{step: "floor_selection"}} = state) do
+    {answer, _} = WhatsApp.parse_answer(message)
+
+    state =
+      state
+      |> assign(:desk_time, answer)
+      |> assign(:step, "desk_selection")
+
     reply =
       WhatsApp.buttons_message(
         state.contact_phone,
@@ -55,10 +69,17 @@ defmodule Wafer.Flows.BookDesk do
         ]
       )
 
-    {:reply, reply, assign(state, :step, "desk_selection")}
+    {:reply, reply, state}
   end
 
-  def handle_inbound_message(_message, %FlowState{assigns: %{step: "desk_selection"}} = state) do
+  def handle_inbound_message(message, %FlowState{assigns: %{step: "desk_selection"}} = state) do
+    {answer, _} = WhatsApp.parse_answer(message)
+
+    state =
+      state
+      |> assign(:desk_floor, answer)
+      |> assign(:step, "confirmation")
+
     reply =
       WhatsApp.list_message(
         state.contact_phone,
@@ -76,11 +97,19 @@ defmodule Wafer.Flows.BookDesk do
         ]
       )
 
-    {:reply, reply, assign(state, :step, "confirmation")}
+    {:reply, reply, state}
   end
 
-  def handle_inbound_message(_message, %FlowState{assigns: %{step: "confirmation"}} = state) do
-    reply = WhatsApp.text_message(state.contact_phone, "Desk booked!")
+  def handle_inbound_message(message, %FlowState{assigns: %{step: "confirmation"}} = state) do
+    {answer, _} = WhatsApp.parse_answer(message)
+
+    state = assign(state, :desk_number, answer)
+
+    reply =
+      WhatsApp.text_message(
+        state.contact_phone,
+        "Desk #{answer} booked for #{state.assigns[:desk_date]}!"
+      )
 
     {:reply_and_end, reply, state}
   end
