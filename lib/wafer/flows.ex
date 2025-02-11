@@ -23,6 +23,18 @@ defmodule Wafer.Flows do
         additionalProperties: false
       },
       module: Wafer.Flows.BookMeetingRoom
+    },
+    %{
+      name: "list_reservations_flow",
+      description:
+        "Call this to start a flow that lists the user's reservations of desks and meeting rooms. No arguments needed, call this as soon as you recognize the intent to list reservations",
+      strict: true,
+      parameters: %{
+        type: :object,
+        properties: %{},
+        additionalProperties: false
+      },
+      module: Wafer.Flows.ListReservations
     }
   ]
 

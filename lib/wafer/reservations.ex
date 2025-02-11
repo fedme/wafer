@@ -9,16 +9,20 @@ defmodule Wafer.Reservations do
   alias Wafer.Reservations.Reservation
 
   @doc """
-  Returns the list of reservations.
+  Returns the list of reservations for a given owner, sorted by start date.
 
   ## Examples
 
-      iex> list_reservations()
+      iex> list_reservations(owner_id)
       [%Reservation{}, ...]
 
   """
-  def list_reservations do
-    Repo.all(Reservation)
+  def list_reservations(owner, limit \\ 10) do
+    Reservation
+    |> where([r], r.owner == ^owner)
+    |> order_by([r], asc: r.start)
+    |> limit(^limit)
+    |> Repo.all()
   end
 
   @doc """
