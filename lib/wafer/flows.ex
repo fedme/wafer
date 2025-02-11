@@ -35,6 +35,18 @@ defmodule Wafer.Flows do
         additionalProperties: false
       },
       module: Wafer.Flows.ListReservations
+    },
+    %{
+      name: "cancel_reservation_flow",
+      description:
+        "Call this to start a flow that allows the user to cancel a reservation. No arguments needed, call this as soon as you recognize the intent to cancel a reservation",
+      strict: true,
+      parameters: %{
+        type: :object,
+        properties: %{},
+        additionalProperties: false
+      },
+      module: Wafer.Flows.CancelReservation
     }
   ]
 
