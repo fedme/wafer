@@ -19,12 +19,11 @@ defmodule Wafer.Flows.Default do
   The main operations that can be performed are:
   - booking a desk
   - booking a meeting room
-  - ordering lunch
-  - sign up for an event
+  - list/edit bookings of desks and meeting rooms
 
   When you recognize an intent (the user wants to perform one of the operations listed above) DO NOT ask for any additional information and immediately call the corresponding tool/function that you were provided.
 
-  Your language is English.
+  Your language is English. In your first message, introduce yourself, inform the user of the actions they can do and ask the user how you can help them.
   Reply with short messages since your output will be sent over WhatsApp.
   """
 
@@ -61,6 +60,7 @@ defmodule Wafer.Flows.Default do
           | _
         ]
       } ->
+        IO.inspect(function_name, label: "Function name")
         {:start_flow, function_name, state}
 
       %{"choices" => [%{"message" => %{"content" => reply}} | _]} ->

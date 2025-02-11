@@ -3,7 +3,7 @@ defmodule Wafer.Flows do
     %{
       name: "desk_booking_flow",
       description:
-        "Call this to start a flow that allows the user to book a desk. No arguments needed, call this as soon as you recognize the intent",
+        "Call this to start a flow that allows the user to book a desk. No arguments needed, call this as soon as you recognize the intent to book a desk",
       strict: true,
       parameters: %{
         type: :object,
@@ -13,8 +13,9 @@ defmodule Wafer.Flows do
       module: Wafer.Flows.BookDesk
     },
     %{
-      name: "book_meeting_room",
-      description: "Book a meeting room at the coworking space",
+      name: "meeting_room_booking_flow",
+      description:
+        "Call this to start a flow that allows the user to book a meeting room. No arguments needed, call this as soon as you recognize the intent to book a meeting room",
       strict: true,
       parameters: %{
         type: :object,
@@ -28,7 +29,8 @@ defmodule Wafer.Flows do
   def list_flows(), do: @flows
 
   def get_flow_module(flow_id) do
-    Enum.find_value(@flows, &(&1.name == flow_id), & &1.module)
+    Enum.find_value(@flows, fn x -> if x.name == flow_id, do: x.module end)
+    |> IO.inspect(label: "Flow module")
   end
 
   def flow_exists?(flow_id) do
