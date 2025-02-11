@@ -1,4 +1,4 @@
-defmodule Wafer.IntentClassifier do
+defmodule Wafer.QuitIntentClassifier do
   use GenServer
 
   @intents [

@@ -1,6 +1,6 @@
 defmodule Wafer.ContactProcess do
   use GenServer
-  alias Wafer.IntentClassifier
+  alias Wafer.QuitIntentClassifier
   alias Wafer.FlowState
   alias Wafer.Flows
 
@@ -56,7 +56,7 @@ defmodule Wafer.ContactProcess do
   end
 
   def wants_to_exit_current_flow?(%{"type" => "text", "text" => %{"body" => text}}) do
-    {intent, score} = IntentClassifier.classify(text)
+    {intent, score} = QuitIntentClassifier.classify(text)
     IO.inspect({intent, score}, label: "Intent for #{text}")
     intent in ["exit", "menu"] and score > 0.55
   end

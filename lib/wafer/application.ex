@@ -16,7 +16,7 @@ defmodule Wafer.Application do
       {Finch, name: Wafer.Finch},
       {Registry, keys: :unique, name: Wafer.ContactRegistry},
       {DynamicSupervisor, strategy: :one_for_one, name: Wafer.ContactSupervisor},
-      {Wafer.IntentClassifier, []},
+      {Wafer.QuitIntentClassifier, []},
       # Start a worker by calling: Wafer.Worker.start_link(arg)
       # {Wafer.Worker, arg},
       # Start to serve requests, typically the last entry
