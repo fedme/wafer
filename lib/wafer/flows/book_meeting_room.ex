@@ -2,11 +2,13 @@ defmodule Wafer.Flows.BookMeetingRoom do
   @moduledoc """
   Flow that allows the user to book a meeting room at the coworking space.
   """
-  @behaviour Wafer.Flow
 
   alias Wafer.FlowState
-  import Wafer.FlowState, only: [assign: 3]
   alias Wafer.WhatsApp
+  alias Wafer.Reservations
+  import Wafer.FlowState, only: [assign: 3]
+
+  @behaviour Wafer.Flow
 
   @impl Wafer.Flow
   def init(state) do
@@ -44,7 +46,7 @@ defmodule Wafer.Flows.BookMeetingRoom do
     reply =
       WhatsApp.list_message(
         state.contact_phone,
-        "What time do you need the room",
+        "What time do you need the room?",
         "Select a time",
         [
           {"9:00", "9:00", ""},
@@ -61,8 +63,6 @@ defmodule Wafer.Flows.BookMeetingRoom do
 
     {:reply, reply, state}
   end
-
-  # Select floor
 
   # Select room
 
@@ -97,7 +97,9 @@ defmodule Wafer.Flows.BookMeetingRoom do
   def handle_inbound_message(message, %FlowState{assigns: %{step: "confirmation"}} = state) do
     {answer, _} = WhatsApp.parse_answer(message)
 
-    state = assign(state, :desk_number, answer)
+    state = assign(state, :room_number, answer)
+
+    {:ok, _reservation} = create_reservation(state)
 
     reply =
       WhatsApp.text_message(
@@ -106,5 +108,38 @@ defmodule Wafer.Flows.BookMeetingRoom do
       )
 
     {:reply_and_end, reply, state}
+  end
+
+  def create_reservation(%FlowState{} = state) do
+    reservation_start =
+      DateTime.new!(
+        Date.utc_today(),
+        Time.from_iso8601!("#{state.assigns[:room_time]}:00Z"),
+        "Etc/UTC"
+      )
+
+    reservation_start =
+      case state.assigns[:room_date] do
+        "today" ->
+          reservation_start
+
+        "tomorrow" ->
+          DateTime.shift(reservation_start, day: 1)
+
+        "the_day_after_tomorrow" ->
+          DateTime.shift(reservation_start, day: 2)
+      end
+
+    reservation_end = DateTime.shift(reservation_start, hour: 1)
+
+    Reservations.create_reservation(%{
+      owner: state.contact_phone,
+      resource: :meeting_room,
+      start: reservation_start,
+      end: reservation_end,
+      details: %{
+        room_number: state.assigns[:room_number]
+      }
+    })
   end
 end
