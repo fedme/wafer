@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :wafer, Wafer.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "wafer",
+  password: "wafer",
   hostname: "localhost",
   database: "wafer_dev",
   stacktrace: true,

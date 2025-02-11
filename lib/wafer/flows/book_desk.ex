@@ -2,11 +2,13 @@ defmodule Wafer.Flows.BookDesk do
   @moduledoc """
   Flow that allows the user to book a desk at the coworking space.
   """
-  @behaviour Wafer.Flow
 
   alias Wafer.FlowState
-  import Wafer.FlowState, only: [assign: 3]
   alias Wafer.WhatsApp
+  alias Wafer.Reservations
+  import Wafer.FlowState, only: [assign: 3]
+
+  @behaviour Wafer.Flow
 
   @impl Wafer.Flow
   def init(state) do
@@ -115,6 +117,8 @@ defmodule Wafer.Flows.BookDesk do
 
     state = assign(state, :desk_number, answer)
 
+    {:ok, _reservation} = create_reservation(state)
+
     reply =
       WhatsApp.text_message(
         state.contact_phone,
@@ -122,5 +126,45 @@ defmodule Wafer.Flows.BookDesk do
       )
 
     {:reply_and_end, reply, state}
+  end
+
+  def create_reservation(%FlowState{} = state) do
+    {reservation_start, reservation_end} =
+      case state.assigns[:desk_time] do
+        "full_day" ->
+          {DateTime.new!(Date.utc_today(), ~T[09:00:00.000], "Etc/UTC"),
+           DateTime.new!(Date.utc_today(), ~T[18:00:00.000], "Etc/UTC")}
+
+        "morning" ->
+          {DateTime.new!(Date.utc_today(), ~T[09:00:00.000], "Etc/UTC"),
+           DateTime.new!(Date.utc_today(), ~T[13:00:00.000], "Etc/UTC")}
+
+        "afternoon" ->
+          {DateTime.new!(Date.utc_today(), ~T[13:00:00.000], "Etc/UTC"),
+           DateTime.new!(Date.utc_today(), ~T[18:00:00.000], "Etc/UTC")}
+      end
+
+    {reservation_start, reservation_end} =
+      case state.assigns[:desk_date] do
+        "today" ->
+          {reservation_start, reservation_end}
+
+        "tomorrow" ->
+          {DateTime.shift(reservation_start, day: 1), DateTime.shift(reservation_end, day: 1)}
+
+        "the_day_after_tomorrow" ->
+          {DateTime.shift(reservation_start, day: 2), DateTime.shift(reservation_end, day: 2)}
+      end
+
+    Reservations.create_reservation(%{
+      owner: state.contact_phone,
+      resource: :desk,
+      start: reservation_start,
+      end: reservation_end,
+      details: %{
+        desk_number: state.assigns[:desk_number],
+        desk_floor: state.assigns[:desk_floor]
+      }
+    })
   end
 end

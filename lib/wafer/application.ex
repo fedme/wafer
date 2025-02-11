@@ -9,7 +9,7 @@ defmodule Wafer.Application do
   def start(_type, _args) do
     children = [
       WaferWeb.Telemetry,
-      # Wafer.Repo,
+      Wafer.Repo,
       {DNSCluster, query: Application.get_env(:wafer, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Wafer.PubSub},
       # Start the Finch HTTP client for sending emails

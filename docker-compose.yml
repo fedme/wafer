@@ -9,21 +9,23 @@ services:
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
 
-  # db:
-  #   image: pgvector/pgvector:pg16
-  #   restart: always
-  #   ports:
-  #     - 5432:5432
-  #   environment:
-  #     POSTGRES_USER: wafer
-  #     POSTGRES_PASSWORD: wafer
-  #   volumes:
-  #     - wafer_postgres_db:/var/lib/postgresql/data
+  db:
+    image: pgvector/pgvector:pg16
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: wafer
+      POSTGRES_PASSWORD: wafer
+      POSTGRES_DB: wafer_dev
+    volumes:
+      - wafer_postgres_db:/var/lib/postgresql/data
 
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 8080:8080
-# volumes:
-#   wafer_postgres_db:
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  wafer_postgres_db:
