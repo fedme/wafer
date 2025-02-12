@@ -7,7 +7,7 @@ defmodule Wafer.ContactProcess do
   require Logger
 
   defmodule State do
-    defstruct current_flow_id: nil, flow_state: %FlowState{}
+    defstruct current_flow_id: nil, flow_state: %FlowState{}, last_inbound_timestamp: 0
   end
 
   # Public API
@@ -25,6 +25,7 @@ defmodule Wafer.ContactProcess do
 
   # GenServer Callbacks
   def init(state) do
+    Process.send_after(self(), :check_timeout, 60 * 1000)
     {:ok, state}
   end
 
@@ -39,14 +40,26 @@ defmodule Wafer.ContactProcess do
     state = %State{
       state
       | current_flow_id: current_flow_id,
+        last_inbound_timestamp: DateTime.to_unix(DateTime.utc_now(), :second),
         flow_state: FlowState.append_message(state.flow_state, message)
     }
 
     state = run_current_flow(message, state)
 
-    IO.inspect(state, label: "New state")
-
     {:reply, :ok, state}
+  end
+
+  def handle_info(:check_timeout, state) do
+    if DateTime.to_unix(DateTime.utc_now(), :second) - state.last_inbound_timestamp > 5 * 60 do
+      Logger.info(
+        "Contact process for #{state.flow_state.contact_phone} terminating for inactivity."
+      )
+
+      {:stop, :normal, state}
+    else
+      Process.send_after(self(), :check_timeout, 60 * 1000)
+      {:noreply, state}
+    end
   end
 
   # Internal functions
