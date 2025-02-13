@@ -13,6 +13,22 @@ Let's create a WhatsApp app for a co-working space that allows users to:
 
 ![Screenshot of the WhatsApp service](docs/screenshot-1.png)
 
+## Implementation details
+
+- There's a controller that receives WhatsApp messages from Meta's webhook.
+- We start a GenServer for each WhatsApp contact who is messaging us, storing chat messages in the state.
+- We are not interested in storing messages, as chat sessions are short-lived and ephemeral (e.g., booking a desk).
+- We have a GPT-based AI agent that answers users' basic questions and handles predefined flows (e.g., a flow for booking a desk).
+- When the agent recognizes predefined intents (e.g., “book a desk”), it triggers the corresponding flow.
+
+### Architecture
+
+![Screenshot of the WhatsApp service](docs/architecture-diagram.png)
+
+### Contact Process
+
+![Screenshot of the WhatsApp service](docs/process-diagram.png)
+
 ## Phoenix instructions
 
 To start your Phoenix server:
