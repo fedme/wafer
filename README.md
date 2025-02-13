@@ -18,8 +18,9 @@ Let's create a WhatsApp app for a co-working space that allows users to:
 - There's a controller that receives WhatsApp messages from Meta's webhook.
 - We start a GenServer for each WhatsApp contact who is messaging us, storing chat messages in the state.
 - We are not interested in storing messages, as chat sessions are short-lived and ephemeral (e.g., booking a desk).
-- We have a GPT-based AI agent that answers users' basic questions and handles predefined flows (e.g., a flow for booking a desk).
-- When the agent recognizes predefined intents (e.g., “book a desk”), it triggers the corresponding flow.
+- We have a GPT-based AI agent that answers users' basic questions.
+- We also have a list of predefined flows (e.g., a flow for booking a desk).
+- When the AI agent recognizes predefined intents (e.g., “book a desk”), it triggers the corresponding flow.
 
 ### Architecture
 
