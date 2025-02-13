@@ -1,5 +1,5 @@
 defmodule Wafer.ContactProcess do
-  use GenServer
+  use GenServer, restart: :transient
   alias Wafer.QuitIntentClassifier
   alias Wafer.FlowState
   alias Wafer.Flows
